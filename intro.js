@@ -522,6 +522,19 @@
         _checkRight(targetOffset, tooltipLayerStyleLeft, tooltipOffset, windowSize, tooltipLayer);
         tooltipLayer.style.bottom = (targetOffset.height +  20) + 'px';
         break;
+
+      case 'top-middle-aligned':
+        arrowLayer.className = 'introjs-arrow bottom';
+
+        var tooltipLayerStyleLeftRight = targetOffset.width / 2 - tooltipOffset.width / 2;
+
+        if (_checkLeft(targetOffset, tooltipLayerStyleLeftRight, tooltipOffset, tooltipLayer)) {
+          tooltipLayer.style.right = null;
+          _checkRight(targetOffset, tooltipLayerStyleLeftRight, tooltipOffset, windowSize, tooltipLayer);
+        }
+        tooltipLayer.style.bottom = (targetOffset.height +  20) + 'px';
+        break;
+
       case 'right':
         tooltipLayer.style.left = (targetOffset.width + 20) + 'px';
         if (targetOffset.top + tooltipOffset.height > windowSize.height) {
@@ -588,6 +601,7 @@
         }
         tooltipLayer.style.top = (targetOffset.height + 20) + 'px';
         break;
+
 
       case 'bottom-left-aligned':
       // Bottom-left-aligned is the same as the default bottom
@@ -962,7 +976,7 @@
       }
 
       tooltipLayer.appendChild(arrowLayer);
-      referenceLayer.appendChild(tooltipLayer);
+      helperLayer.appendChild(tooltipLayer);
 
       //next button
       var nextTooltipButton = document.createElement('a');
@@ -1311,6 +1325,7 @@
     if (tooltip) {
       var step = tooltip.getAttribute('data-step');
       tooltip.parentNode.removeChild(tooltip);
+      this._hintTooltipHideCallback();
       return step;
     }
   }
@@ -1652,6 +1667,7 @@
     var tooltipTextLayer = document.createElement('div');
     var arrowLayer = document.createElement('div');
     var referenceLayer = document.createElement('div');
+    var helperLayer = document.querySelector('.introjs-helperLayer');
 
     tooltipLayer.className = 'introjs-tooltip';
 
@@ -1692,11 +1708,11 @@
     referenceLayer.setAttribute('data-step', hintElement.getAttribute('data-step'));
     _setHelperLayerPosition.call(this, referenceLayer);
 
-    referenceLayer.appendChild(tooltipLayer);
+    helperLayer.appendChild(tooltipLayer);
     document.body.appendChild(referenceLayer);
 
     //set proper position
-    _placeTooltip.call(this, hintElement, tooltipLayer, arrowLayer, null, true);
+    _placeTooltip.call(this, helperLayer, tooltipLayer, arrowLayer, null, true);
   }
 
   /**
@@ -1717,32 +1733,11 @@
     var scrollTop = window.pageYOffset || docEl.scrollTop || body.scrollTop;
     var scrollLeft = window.pageXOffset || docEl.scrollLeft || body.scrollLeft;
 
-    if (element instanceof SVGElement) {
-      var x = element.getBoundingClientRect()
-      elementPosition.top = x.top + scrollTop;
-      elementPosition.width = x.width;
-      elementPosition.height = x.height;
-      elementPosition.left = x.left + scrollLeft;
-    } else {
-      //set width
-      elementPosition.width = element.offsetWidth;
-
-      //set height
-      elementPosition.height = element.offsetHeight;
-
-      //calculate element top and left
-      var _x = 0;
-      var _y = 0;
-      while (element && !isNaN(element.offsetLeft) && !isNaN(element.offsetTop)) {
-        _x += element.offsetLeft;
-        _y += element.offsetTop;
-        element = element.offsetParent;
-      }
-      //set top
-      elementPosition.top = _y;
-      //set left
-      elementPosition.left = _x;
-    }
+    var x = element.getBoundingClientRect()
+    elementPosition.top = x.top + scrollTop;
+    elementPosition.width = x.width;
+    elementPosition.height = x.height;
+    elementPosition.left = x.left + scrollLeft;
 
     return elementPosition;
   }
@@ -1804,6 +1799,9 @@
 
   //Prototype
   introJs.fn = IntroJs.prototype = {
+    addOverlayLayer: function(target) {
+      _addOverlayLayer.call(this, target);
+    },
     clone: function () {
       return new IntroJs(this);
     },
@@ -1928,6 +1926,14 @@
         this._introExitCallback = providedCallback;
       } else {
         throw new Error('Provided callback for onexit was not a function.');
+      }
+      return this;
+    },
+    onhinttooltiphide: function(providedCallback) {
+      if (typeof (providedCallback) === 'function') {
+        this._hintTooltipHideCallback = providedCallback;
+      } else {
+        throw new Error('Provided callback for ontooltiphide was not a function.');
       }
       return this;
     },
