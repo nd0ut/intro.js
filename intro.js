@@ -1323,9 +1323,9 @@
     var tooltip = this._targetElement.querySelector('.introjs-hintReference');
 
     if (tooltip) {
-      var step = tooltip.getAttribute('data-step');
+      var step = parseInt(tooltip.getAttribute('data-step'));
       tooltip.parentNode.removeChild(tooltip);
-      this._hintTooltipHideCallback();
+      this._hintTooltipHideCallback.call(this, step);
       return step;
     }
   }
